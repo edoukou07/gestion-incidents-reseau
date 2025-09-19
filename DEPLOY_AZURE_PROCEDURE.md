@@ -153,6 +153,9 @@ git remote -v
 
 ### 4.2 Préparation et commit final
 ```powershell
+# Créer une branche dédiée au déploiement
+git checkout -b azure-deployment
+
 # Ajouter tous les fichiers
 git add .
 
@@ -165,8 +168,11 @@ git status
 
 ### 4.3 Déploiement vers Azure
 ```powershell
-# Déployer vers Azure (première fois)
-git push azure main
+# Basculer sur la branche de déploiement
+git checkout azure-deployment
+
+# Déployer vers Azure depuis la branche azure-deployment
+git push azure azure-deployment:master
 
 # Suivre les logs de déploiement
 az webapp log tail --resource-group $resourceGroup --name $appName
@@ -251,7 +257,11 @@ az webapp config appsettings set --resource-group $resourceGroup --name $appName
 
 ### Redéploiement rapide
 ```powershell
-git add . && git commit -m "Update $(Get-Date -Format 'yyyy-MM-dd HH:mm')" && git push azure main
+# Basculer sur la branche de déploiement
+git checkout azure-deployment
+
+# Ajouter les modifications et redéployer
+git add . && git commit -m "Update $(Get-Date -Format 'yyyy-MM-dd HH:mm')" && git push azure azure-deployment:master
 ```
 
 ### Logs de diagnostic

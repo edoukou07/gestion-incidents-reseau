@@ -230,7 +230,7 @@ En cas de problème:
 1. **Vérifier les logs**: `az webapp log tail`
 2. **Vérifier la configuration**: Variables d'environnement
 3. **Redémarrer l'app**: `az webapp restart`
-4. **Forcer le redéploiement**: `git push azure main --force`
+4. **Forcer le redéploiement**: `git push azure azure-deployment:master --force`
 5. **Contacter le support Azure** si problème persistant
 
 ---

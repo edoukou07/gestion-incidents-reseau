@@ -146,8 +146,9 @@ try {
     # Étape 9: Déploiement
     Write-Host "`n🚀 Déploiement vers Azure..." -ForegroundColor $Cyan
     Write-Host "⏳ Cela peut prendre plusieurs minutes..." -ForegroundColor $Yellow
+    Write-Host "📦 Déploiement depuis la branche: azure-deployment" -ForegroundColor $Yellow
     
-    $deployOutput = git push azure main 2>&1
+    $deployOutput = git push azure azure-deployment:master 2>&1
     if ($LASTEXITCODE -eq 0) {
         Write-Host "✅ Déploiement réussi!" -ForegroundColor $Green
     } else {

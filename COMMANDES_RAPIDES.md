@@ -41,8 +41,8 @@ az webapp deployment source config-local-git --resource-group $resourceGroup --n
 # Configuration Git
 git remote add azure https://$appName.scm.azurewebsites.net/$appName.git
 
-# Déploiement
-git add . && git commit -m "Azure deployment" && git push azure main
+# Déploiement depuis la branche azure-deployment
+git add . && git commit -m "Azure deployment" && git push azure azure-deployment:master
 ```
 
 ## COMMANDES DE MAINTENANCE 🔧
@@ -59,7 +59,7 @@ az webapp restart --resource-group $resourceGroup --name $appName
 
 ### Redéploiement rapide
 ```powershell
-git add . && git commit -m "Update $(Get-Date -Format 'yyyy-MM-dd HH:mm')" && git push azure main
+git add . && git commit -m "Update $(Get-Date -Format 'yyyy-MM-dd HH:mm')" && git push azure azure-deployment:master
 ```
 
 ### État de l'application
