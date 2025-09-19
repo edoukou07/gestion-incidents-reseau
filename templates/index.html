@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Gestion des Incidents Réseau</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <!-- Font Awesome pour les icônes -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <!-- Menu de navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="{{ url_for('index') }}">
+                <i class="fas fa-network-wired me-2"></i>
+                Gestion des Incidents
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="{{ url_for('index') }}">
+                            <i class="fas fa-home me-1"></i>Accueil
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('ajouter') }}">
+                            <i class="fas fa-plus me-1"></i>Ajouter un incident
+                        </a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-user me-1"></i>{{ session.user_name or 'Profil' }}
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><h6 class="dropdown-header">
+                                <i class="fas fa-id-badge me-2"></i>{{ session.user_name }}
+                            </h6></li>
+                            <li><small class="dropdown-item-text text-muted">{{ session.user_role }}</small></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#"><i class="fas fa-cog me-1"></i>Paramètres</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt me-1"></i>Déconnexion</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid">
+        <!-- Messages Flash -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="container mt-3">
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ 'danger' if category == 'error' else 'success' }} alert-dismissible fade show" role="alert">
+                            <i class="fas fa-{{ 'exclamation-circle' if category == 'error' else 'check-circle' }} me-2"></i>
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <!-- Carrousel -->
+        <div id="incidentsCarousel" class="carousel slide mb-4" data-bs-ride="carousel">
+            <div class="carousel-indicators">
+                <button type="button" data-bs-target="#incidentsCarousel" data-bs-slide-to="0" class="active"></button>
+                <button type="button" data-bs-target="#incidentsCarousel" data-bs-slide-to="1"></button>
+                <button type="button" data-bs-target="#incidentsCarousel" data-bs-slide-to="2"></button>
+            </div>
+            <div class="carousel-inner">
+                <div class="carousel-item active">
+                    <div class="carousel-slide bg-gradient-primary d-flex align-items-center">
+                        <div class="container text-center text-white">
+                            <h2><i class="fas fa-shield-alt me-2"></i>Surveillance Réseau 24/7</h2>
+                            <p class="lead">Monitoring continu de l'infrastructure réseau pour une détection rapide des incidents</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="carousel-item">
+                    <div class="carousel-slide bg-gradient-success d-flex align-items-center">
+                        <div class="container text-center text-white">
+                            <h2><i class="fas fa-tools me-2"></i>Résolution Rapide</h2>
+                            <p class="lead">Équipe d'experts prête à intervenir pour résoudre vos incidents réseau</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="carousel-item">
+                    <div class="carousel-slide bg-gradient-info d-flex align-items-center">
+                        <div class="container text-center text-white">
+                            <h2><i class="fas fa-chart-line me-2"></i>Analytics & Reporting</h2>
+                            <p class="lead">Tableau de bord complet avec statistiques et analyses des incidents</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <button class="carousel-control-prev" type="button" data-bs-target="#incidentsCarousel" data-bs-slide="prev">
+                <span class="carousel-control-prev-icon"></span>
+            </button>
+            <button class="carousel-control-next" type="button" data-bs-target="#incidentsCarousel" data-bs-slide="next">
+                <span class="carousel-control-next-icon"></span>
+            </button>
+        </div>
+
+        <!-- Contenu principal -->
+        <div class="container">
+            <div class="row">
+                <div class="col-12">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h1 class="display-5">
+                            <i class="fas fa-exclamation-triangle text-warning me-2"></i>
+                            Liste des Incidents Réseau
+                        </h1>
+                        <a href="{{ url_for('ajouter') }}" class="btn btn-primary btn-lg">
+                            <i class="fas fa-plus me-2"></i>Nouvel incident
+                        </a>
+                    </div>
+
+                    <!-- Table responsive avec Bootstrap -->
+                    <div class="card shadow">
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover table-striped">
+                                    <thead class="table-dark">
+                                        <tr>
+                                            <th><i class="fas fa-hashtag me-1"></i>ID</th>
+                                            <th><i class="fas fa-file-alt me-1"></i>Titre</th>
+                                            <th><i class="fas fa-exclamation me-1"></i>Gravité</th>
+                                            <th><i class="fas fa-calendar me-1"></i>Date</th>
+                                            <th><i class="fas fa-info-circle me-1"></i>Statut</th>
+                                            <th><i class="fas fa-cogs me-1"></i>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for i in incidents %}
+                                        <tr>
+                                            <td><span class="badge bg-secondary">{{ i.id }}</span></td>
+                                            <td>{{ i.titre }}</td>
+                                            <td>
+                                                {% if i.gravite == 'Critique' %}
+                                                    <span class="badge bg-danger">{{ i.gravite }}</span>
+                                                {% elif i.gravite == 'Élevée' %}
+                                                    <span class="badge bg-warning">{{ i.gravite }}</span>
+                                                {% else %}
+                                                    <span class="badge bg-info">{{ i.gravite }}</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>{{ i.date }}</td>
+                                            <td>
+                                                {% if i.statut == 'Résolu' %}
+                                                    <span class="badge bg-success">{{ i.statut }}</span>
+                                                {% elif i.statut == 'En cours' %}
+                                                    <span class="badge bg-primary">{{ i.statut }}</span>
+                                                {% else %}
+                                                    <span class="badge bg-secondary">{{ i.statut }}</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <a href="{{ url_for('detail', incident_id=i.id) }}" class="btn btn-outline-primary btn-sm">
+                                                    <i class="fas fa-eye me-1"></i>Voir
+                                                </a>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

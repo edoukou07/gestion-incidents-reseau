@@ -1,0 +1,4 @@
+username,password,email,role,nom_complet
+admin,admin123,admin@gestion-incidents.fr,Administrateur,Administrateur Système
+technicien,tech123,technicien@gestion-incidents.fr,Technicien,Jean Dupont
+manager,manager123,manager@gestion-incidents.fr,Manager,Marie Martin

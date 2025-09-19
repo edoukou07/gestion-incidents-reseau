@@ -1,0 +1,295 @@
+<!doctype html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% if incident %}{{ incident.titre }} - {% endif %}Détail de l'incident</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <!-- Font Awesome pour les icônes -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <!-- Menu de navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="{{ url_for('index') }}">
+                <i class="fas fa-network-wired me-2"></i>
+                Gestion des Incidents
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('index') }}">
+                            <i class="fas fa-home me-1"></i>Accueil
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('ajouter') }}">
+                            <i class="fas fa-plus me-1"></i>Ajouter un incident
+                        </a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-user me-1"></i>{{ session.user_name or 'Profil' }}
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><h6 class="dropdown-header">
+                                <i class="fas fa-id-badge me-2"></i>{{ session.user_name }}
+                            </h6></li>
+                            <li><small class="dropdown-item-text text-muted">{{ session.user_role }}</small></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#"><i class="fas fa-cog me-1"></i>Paramètres</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt me-1"></i>Déconnexion</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        {% if incident %}
+        <div class="row">
+            <!-- Breadcrumb -->
+            <div class="col-12">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item">
+                            <a href="{{ url_for('index') }}">
+                                <i class="fas fa-home me-1"></i>Accueil
+                            </a>
+                        </li>
+                        <li class="breadcrumb-item active">
+                            <i class="fas fa-file-alt me-1"></i>Incident #{{ incident.id }}
+                        </li>
+                    </ol>
+                </nav>
+            </div>
+
+            <!-- En-tête avec informations principales -->
+            <div class="col-12 mb-4">
+                <div class="card border-0 bg-light">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col-auto">
+                                <div class="avatar-lg bg-primary rounded-circle d-flex align-items-center justify-content-center">
+                                    <i class="fas fa-exclamation-triangle fa-2x text-white"></i>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <h1 class="display-6 mb-1">{{ incident.titre }}</h1>
+                                <div class="d-flex flex-wrap gap-2">
+                                    <span class="badge bg-secondary fs-6">ID: {{ incident.id }}</span>
+                                    {% if incident.gravite == 'Critique' %}
+                                        <span class="badge bg-danger fs-6">
+                                            <i class="fas fa-fire me-1"></i>{{ incident.gravite }}
+                                        </span>
+                                    {% elif incident.gravite == 'Élevée' %}
+                                        <span class="badge bg-warning fs-6">
+                                            <i class="fas fa-exclamation-triangle me-1"></i>{{ incident.gravite }}
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-info fs-6">
+                                            <i class="fas fa-info-circle me-1"></i>{{ incident.gravite }}
+                                        </span>
+                                    {% endif %}
+                                    
+                                    {% if incident.statut == 'Résolu' %}
+                                        <span class="badge bg-success fs-6">
+                                            <i class="fas fa-check-circle me-1"></i>{{ incident.statut }}
+                                        </span>
+                                    {% elif incident.statut == 'En cours' %}
+                                        <span class="badge bg-primary fs-6">
+                                            <i class="fas fa-cog me-1"></i>{{ incident.statut }}
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-secondary fs-6">
+                                            <i class="fas fa-clock me-1"></i>{{ incident.statut }}
+                                        </span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Détails de l'incident -->
+            <div class="col-md-8">
+                <div class="card shadow">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-info-circle me-2"></i>Informations détaillées
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label class="form-label fw-bold text-muted">
+                                    <i class="fas fa-align-left me-2"></i>Description
+                                </label>
+                                <div class="p-3 bg-light rounded">
+                                    {{ incident.description or 'Aucune description disponible' }}
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold text-muted">
+                                    <i class="fas fa-calendar me-2"></i>Date de création
+                                </label>
+                                <div class="p-2 bg-light rounded">
+                                    {{ incident.date }}
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold text-muted">
+                                    <i class="fas fa-user me-2"></i>Signalé par
+                                </label>
+                                <div class="p-2 bg-light rounded">
+                                    Système automatique
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Actions sur l'incident -->
+                <div class="card shadow mt-4">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-tools me-2"></i>Actions disponibles
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-grid gap-2 d-md-block">
+                            {% if incident.statut != 'Résolu' %}
+                            <button class="btn btn-success me-2">
+                                <i class="fas fa-check me-1"></i>Marquer comme résolu
+                            </button>
+                            <button class="btn btn-warning me-2">
+                                <i class="fas fa-edit me-1"></i>Modifier l'incident
+                            </button>
+                            {% endif %}
+                            <button class="btn btn-info me-2">
+                                <i class="fas fa-comment me-1"></i>Ajouter un commentaire
+                            </button>
+                            <button class="btn btn-secondary">
+                                <i class="fas fa-download me-1"></i>Exporter les détails
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar avec statistiques -->
+            <div class="col-md-4">
+                <div class="card shadow">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-chart-pie me-2"></i>Statistiques
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="text-center mb-3">
+                            <i class="fas fa-clock fa-3x text-primary mb-2"></i>
+                            <h6>Temps écoulé</h6>
+                            <p class="text-muted">Depuis la création</p>
+                        </div>
+                        
+                        <hr>
+                        
+                        <div class="row text-center">
+                            <div class="col-6">
+                                <div class="border-end">
+                                    <h4 class="text-warning">24h</h4>
+                                    <small class="text-muted">Temps moyen</small>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <h4 class="text-success">95%</h4>
+                                <small class="text-muted">Taux résolution</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Timeline -->
+                <div class="card shadow mt-4">
+                    <div class="card-header bg-dark text-white">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-history me-2"></i>Historique
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="timeline">
+                            <div class="timeline-item">
+                                <div class="timeline-marker bg-primary"></div>
+                                <div class="timeline-content">
+                                    <h6 class="timeline-title">Incident créé</h6>
+                                    <p class="timeline-text text-muted small">{{ incident.date }}</p>
+                                </div>
+                            </div>
+                            {% if incident.statut == 'En cours' %}
+                            <div class="timeline-item">
+                                <div class="timeline-marker bg-warning"></div>
+                                <div class="timeline-content">
+                                    <h6 class="timeline-title">En cours de traitement</h6>
+                                    <p class="timeline-text text-muted small">Assigné à l'équipe technique</p>
+                                </div>
+                            </div>
+                            {% endif %}
+                            {% if incident.statut == 'Résolu' %}
+                            <div class="timeline-item">
+                                <div class="timeline-marker bg-success"></div>
+                                <div class="timeline-content">
+                                    <h6 class="timeline-title">Incident résolu</h6>
+                                    <p class="timeline-text text-muted small">Problème corrigé avec succès</p>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <!-- Message d'erreur -->
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card border-danger">
+                    <div class="card-body text-center">
+                        <i class="fas fa-exclamation-circle fa-4x text-danger mb-3"></i>
+                        <h4>Incident introuvable</h4>
+                        <p class="text-muted">L'incident que vous recherchez n'existe pas ou a été supprimé.</p>
+                        <a href="{{ url_for('index') }}" class="btn btn-primary">
+                            <i class="fas fa-arrow-left me-2"></i>Retour à la liste
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Bouton retour -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <a href="{{ url_for('index') }}" class="btn btn-outline-primary btn-lg">
+                    <i class="fas fa-arrow-left me-2"></i>Retour à la liste des incidents
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

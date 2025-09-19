@@ -1,0 +1,4 @@
+id,titre,description,gravite,date,statut
+1,Perte de signal Wi-Fi,Intermittence sur le réseau Wi-Fi dans la zone A,Majeur,2025-09-18,Nouveau
+2,Coupure fibre,Coupure complète sur la fibre optique zone Nord,Critique,2025-09-17,En cours
+3,panne du serveur central,causer par monsieur yao,Critique,2025-09-19,Nouveau
