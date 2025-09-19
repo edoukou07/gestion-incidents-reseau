@@ -3,7 +3,7 @@
 
 ## DÉPLOIEMENT AUTOMATIQUE 🚀
 # Exécuter le script PowerShell automatisé
-.\deploy-to-azure.ps1
+..\scripts\deploy-to-azure.ps1
 
 ## DÉPLOIEMENT MANUEL ÉTAPE PAR ÉTAPE 🛠️
 

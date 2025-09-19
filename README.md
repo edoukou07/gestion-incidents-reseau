@@ -2,44 +2,63 @@
 
 Une application web moderne pour la gestion des incidents réseau, développée avec Flask et Bootstrap.
 
-## 🚀 Déploiement sur Azure App Service - Canada Central
+## 🚀 Déploiement Rapide sur Azure App Service
 
-### ⚡ Déploiement automatique (Recommandé)
 ```powershell
-# Exécuter le script de déploiement automatisé
-.\deploy-to-azure.ps1
+# 1. Basculer sur la branche de déploiement
+git checkout azure-deployment
+
+# 2. Lancer le déploiement automatique
+.\scripts\deploy-to-azure.ps1
 ```
 
-### 📖 Déploiement manuel
-- **Procédure complète** : Consultez `DEPLOY_AZURE_PROCEDURE.md`
-- **Commandes rapides** : Consultez `COMMANDES_RAPIDES.md`
+## 📁 Structure du Projet
 
-### 🌐 URLs après déploiement
-- **Application** : `https://gestion-incidents-XXXX.azurewebsites.net`
-- **Health Check** : `https://gestion-incidents-XXXX.azurewebsites.net/health`
+```
+gestion_incidents/
+├── app.py              # Application Flask principale
+├── config.py           # Configuration Azure
+├── requirements.txt    # Dépendances Python
+├── Procfile           # Configuration Gunicorn pour Azure
+├── .deployment        # Configuration déploiement Azure
+├── data/              # Données CSV (utilisateurs, incidents)
+├── static/            # Fichiers CSS, JS
+├── templates/         # Templates HTML Bootstrap
+├── docs/              # 📚 Documentation complète
+│   ├── README.md                    # Documentation détaillée
+│   ├── DEPLOY_AZURE_PROCEDURE.md   # Procédure déploiement
+│   ├── COMMANDES_RAPIDES.md        # Commandes essentielles
+│   ├── STRATEGIE_BRANCHES.md       # Gestion des branches
+│   ├── TESTS_POST_DEPLOIEMENT.md   # Guide de validation
+│   └── RECAPITULATIF.md            # Vue d'ensemble
+└── scripts/           # 🔧 Scripts d'automatisation
+    ├── deploy-to-azure.ps1         # Déploiement automatique
+    └── switch-branch.ps1           # Gestion des branches
+```
 
-## ✨ Fonctionnalités
+## ⚡ Démarrage Rapide
 
-- 🔐 **Système d'authentification** sécurisé
-- 📊 **Dashboard** avec carrousel informatif
-- ➕ **Création d'incidents** avec formulaire intuitif
-- 👁️ **Visualisation détaillée** des incidents
-- 👥 **Gestion des utilisateurs** avec différents rôles
-- 📱 **Interface responsive** avec Bootstrap 5
-- 🎨 **Design moderne** avec animations CSS
+### 1. Installation locale
+```powershell
+# Cloner et installer les dépendances
+git clone https://github.com/edoukou07/gestion-incidents-reseau.git
+cd gestion-incidents-reseau/gestion_incidents
+pip install -r requirements.txt
 
-## 🚀 Technologies utilisées
+# Lancer en local
+python app.py
+```
 
-- **Backend:** Python Flask 3.0.3
-- **Frontend:** HTML5, CSS3, JavaScript
-- **Framework CSS:** Bootstrap 5.3
-- **Icônes:** Font Awesome 6
-- **Data Processing:** Pandas 2.2.2 (optimisé Azure)
-- **Production Server:** Gunicorn 22.0.0
-- **Base de données:** CSV (pour la simplicité)
-- **Cloud Platform:** Azure App Service
+### 2. Déploiement Azure
+```powershell
+# Utiliser le script automatisé
+.\scripts\deploy-to-azure.ps1
 
-## 👥 Comptes de démonstration
+# Ou gestion avancée des branches
+.\scripts\switch-branch.ps1 deploy
+```
+
+## 👥 Comptes de Test
 
 | Utilisateur | Mot de passe | Rôle |
 |-------------|-------------|------|
@@ -47,93 +66,53 @@ Une application web moderne pour la gestion des incidents réseau, développée 
 | `technicien` | `tech123` | Technicien |
 | `manager` | `manager123` | Manager |
 
-## 🔧 Installation
+## 🌟 Fonctionnalités
 
-1. **Cloner le projet**
-   ```bash
-   git clone <url-du-repo>
-   cd gestion_incidents
-   ```
+- 🔐 **Authentification sécurisée** avec sessions Flask
+- 📊 **Dashboard** avec carrousel Bootstrap
+- ➕ **Gestion CRUD** des incidents
+- 👥 **Système de rôles** utilisateur
+- 📱 **Interface responsive** Bootstrap 5.3
+- ⚡ **Optimisé Azure** avec pandas 2.2.2
+- 🔍 **Health Check** intégré (`/health`)
 
-2. **Installer les dépendances**
-   ```bash
-   pip install -r requirements.txt
-   ```
+## 📚 Documentation
 
-3. **Lancer l'application**
-   ```bash
-   python app.py
-   ```
+Toute la documentation détaillée se trouve dans le dossier [`docs/`](./docs/) :
 
-4. **Accéder à l'application**
-   - Ouvrir votre navigateur
-   - Aller à `http://localhost:5000/login`
-   - Utiliser un des comptes de démonstration
+- **[Déploiement Azure](./docs/DEPLOY_AZURE_PROCEDURE.md)** - Guide complet étape par étape
+- **[Commandes Rapides](./docs/COMMANDES_RAPIDES.md)** - Commandes essentielles
+- **[Stratégie Branches](./docs/STRATEGIE_BRANCHES.md)** - Gestion Git
+- **[Tests Post-Déploiement](./docs/TESTS_POST_DEPLOIEMENT.md)** - Validation
+- **[Récapitulatif](./docs/RECAPITULATIF.md)** - Vue d'ensemble
 
-## 📁 Structure du projet
+## 🔧 Scripts d'Automatisation
 
-```
-gestion_incidents/
-├── app.py              # Application Flask principale
-├── requirements.txt    # Dépendances Python
-├── users.csv          # Base de données des utilisateurs
-├── incidents.csv      # Base de données des incidents
-├── templates/         # Templates HTML
-│   ├── login.html     # Page de connexion
-│   ├── index.html     # Page d'accueil
-│   ├── ajouter.html   # Formulaire d'ajout
-│   └── detail.html    # Détails d'incident
-└── static/           # Ressources statiques
-    └── style.css     # Styles personnalisés
-```
+Le dossier [`scripts/`](./scripts/) contient :
 
-## 🔐 Sécurité
+- **`deploy-to-azure.ps1`** - Déploiement automatique vers Azure
+- **`switch-branch.ps1`** - Gestion facile des branches Git
 
-- Sessions Flask sécurisées
-- Protection des routes avec décorateurs
-- Validation des formulaires
-- Messages d'erreur/succès
+## 🚀 Technologies
 
-## 🎨 Interface utilisateur
+- **Backend**: Python Flask 3.0.3
+- **Frontend**: Bootstrap 5.3, HTML5, CSS3
+- **Data**: Pandas 2.2.2 (optimisé Azure)
+- **Serveur**: Gunicorn 22.0.0
+- **Cloud**: Azure App Service (Canada Central)
 
-- Design responsive Bootstrap
-- Carrousel d'information
-- Menu de navigation intuitif
-- Messages flash pour les notifications
-- Animations CSS personnalisées
+## 🌿 Branches Git
 
-## 📝 Fonctionnalités détaillées
+- **`main`** : Développement principal
+- **`azure-deployment`** : Version optimisée pour Azure
 
-### Authentification
-- Connexion sécurisée avec session
-- Déconnexion avec confirmation
-- Protection des routes sensibles
+## 📞 Support
 
-### Gestion des incidents
-- Création d'incidents avec gravité
-- Visualisation en tableau responsive
-- Détails complets avec historique
-- Badges colorés selon le statut
+Pour toute question ou problème :
+1. Consultez la documentation dans [`docs/`](./docs/)
+2. Vérifiez les logs Azure avec les scripts fournis
+3. Référez-vous aux guides de dépannage
 
-### Interface
-- Carrousel informatif en page d'accueil
-- Menu utilisateur avec profil
-- Messages de notification
-- Design moderne et professionnel
+---
 
-## 🚀 Développement futur
-
-- [ ] Base de données PostgreSQL/MySQL
-- [ ] API REST
-- [ ] Notifications en temps réel
-- [ ] Système de commentaires
-- [ ] Export PDF des rapports
-- [ ] Graphiques et statistiques
-
-## 📄 Licence
-
-Ce projet est sous licence MIT.
-
-## 👨‍💻 Auteur
-
-Développé avec ❤️ pour la gestion efficace des incidents réseau.
+**🎯 Prêt pour le déploiement professionnel sur Azure App Service !**

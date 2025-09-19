@@ -18,12 +18,12 @@
    git checkout azure-deployment
    
    # Déployer automatiquement
-   .\deploy-to-azure.ps1
+   .\scripts\deploy-to-azure.ps1
    ```
 
 2. **Ou utiliser le script de gestion des branches**:
    ```powershell
-   .\switch-branch.ps1 deploy
+   .\scripts\switch-branch.ps1 deploy
    ```
 
 3. **Déploiement manuel**:
@@ -95,4 +95,4 @@ En cas de problème:
 
 Votre application Flask de gestion d'incidents est maintenant complètement préparée pour Azure App Service dans la région Canada Central avec toutes les optimisations et configurations nécessaires.
 
-**Prochaine étape**: Lancez `.\deploy-to-azure.ps1` et suivez les instructions à l'écran ! 🎉
+**Prochaine étape**: Lancez `.\scripts\deploy-to-azure.ps1` et suivez les instructions à l'écran ! 🎉
