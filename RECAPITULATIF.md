@@ -7,16 +7,32 @@
 - `deploy-to-azure.ps1` - Script automatisé de déploiement  
 - `COMMANDES_RAPIDES.md` - Commandes essentielles
 - `TESTS_POST_DEPLOIEMENT.md` - Guide de validation
+- `STRATEGIE_BRANCHES.md` - Stratégie de branches Git
+- `switch-branch.ps1` - Gestion facile des branches
 
 ### ⚡ Pour déployer MAINTENANT
 
-1. **Déploiement automatique (le plus simple)**:
+1. **Déploiement automatique depuis la branche dédiée**:
    ```powershell
+   # Basculer sur la branche de déploiement
+   git checkout azure-deployment
+   
+   # Déployer automatiquement
    .\deploy-to-azure.ps1
    ```
 
-2. **Déploiement manuel**:
+2. **Ou utiliser le script de gestion des branches**:
+   ```powershell
+   .\switch-branch.ps1 deploy
+   ```
+
+3. **Déploiement manuel**:
    Suivez le guide `DEPLOY_AZURE_PROCEDURE.md`
+
+### 🌿 **Stratégie de Branches**
+- **main** : Développement principal
+- **azure-deployment** : Version optimisée pour Azure
+- Consultez `STRATEGIE_BRANCHES.md` pour plus de détails
 
 ### 🌐 Résultat après déploiement
 Votre application sera accessible à une URL comme:
