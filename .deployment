@@ -1,0 +1,16 @@
+{
+    "version": "1.0",
+    "defaultProvider": "AzureRM",
+    "providers": {
+        "AzureRM": {
+            "version": ">=3.0.0",
+            "features": {}
+        }
+    },
+    "appSettings": {
+        "FLASK_ENV": "production",
+        "FLASK_DEBUG": "False",
+        "SCM_DO_BUILD_DURING_DEPLOYMENT": "true",
+        "PYTHON_VERSION": "3.11"
+    }
+}

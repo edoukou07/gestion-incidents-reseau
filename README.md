@@ -2,6 +2,22 @@
 
 Une application web moderne pour la gestion des incidents réseau, développée avec Flask et Bootstrap.
 
+## 🚀 Déploiement sur Azure App Service - Canada Central
+
+### ⚡ Déploiement automatique (Recommandé)
+```powershell
+# Exécuter le script de déploiement automatisé
+.\deploy-to-azure.ps1
+```
+
+### 📖 Déploiement manuel
+- **Procédure complète** : Consultez `DEPLOY_AZURE_PROCEDURE.md`
+- **Commandes rapides** : Consultez `COMMANDES_RAPIDES.md`
+
+### 🌐 URLs après déploiement
+- **Application** : `https://gestion-incidents-XXXX.azurewebsites.net`
+- **Health Check** : `https://gestion-incidents-XXXX.azurewebsites.net/health`
+
 ## ✨ Fonctionnalités
 
 - 🔐 **Système d'authentification** sécurisé
@@ -14,11 +30,14 @@ Une application web moderne pour la gestion des incidents réseau, développée 
 
 ## 🚀 Technologies utilisées
 
-- **Backend:** Python Flask
+- **Backend:** Python Flask 3.0.3
 - **Frontend:** HTML5, CSS3, JavaScript
 - **Framework CSS:** Bootstrap 5.3
 - **Icônes:** Font Awesome 6
+- **Data Processing:** Pandas 2.2.2 (optimisé Azure)
+- **Production Server:** Gunicorn 22.0.0
 - **Base de données:** CSV (pour la simplicité)
+- **Cloud Platform:** Azure App Service
 
 ## 👥 Comptes de démonstration
 

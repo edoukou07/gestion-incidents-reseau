@@ -1,3 +1,18 @@
-Flask==2.3.3
-pandas==2.1.1
-python-dotenv==1.0.0
+# Core Framework
+Flask==3.0.3
+
+# Data Processing - Version optimisée pour Azure App Service
+pandas==2.2.2
+
+# Production Server
+gunicorn==22.0.0
+
+# Environment Management
+python-dotenv==1.0.1
+
+# Azure App Service optimizations
+Werkzeug==3.0.3
+
+# Optional: Performance improvements for pandas on Azure
+numpy==1.26.4
+pytz==2024.1
