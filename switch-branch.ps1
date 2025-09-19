@@ -82,4 +82,4 @@ Write-Host "   .\switch-branch.ps1 main              - Basculer vers main" -Fore
 Write-Host "   .\switch-branch.ps1 azure-deployment  - Basculer vers azure-deployment" -ForegroundColor $White
 Write-Host "   .\switch-branch.ps1 deploy            - Déployer automatiquement" -ForegroundColor $White
 Write-Host "   .\switch-branch.ps1 sync              - Synchroniser les branches" -ForegroundColor $White
-Write-Host "   .\switch-branch.ps1 status            - Voir l'état du repository" -ForegroundColor $White
+Write-Host "   .\switch-branch.ps1 status            - Voir l'etat du repository" -ForegroundColor $White
