@@ -2,7 +2,96 @@ from flask import Flask, render_template, request, redirect, url_for, session, f
 import csv
 import os
 import datetime
+import pyodbc
 from functools import wraps
+from dotenv import load_dotenv
+
+# Charger les variables d'environnement
+load_dotenv()
+
+class DatabaseManager:
+    def __init__(self):
+        """Initialise la connexion à la base de données Azure SQL"""
+        self.connection_string = self.get_connection_string()
+    
+    def get_connection_string(self):
+        """Récupère la chaîne de connexion depuis les variables d'environnement"""
+        conn_string = os.getenv('AZURE_SQL_CONNECTION_STRING')
+        if conn_string:
+            return conn_string
+        
+        # Construire la chaîne de connexion avec les paramètres séparés
+        server = os.getenv('AZURE_SQL_SERVER')
+        database = os.getenv('AZURE_SQL_DATABASE')
+        username = os.getenv('AZURE_SQL_USERNAME')
+        password = os.getenv('AZURE_SQL_PASSWORD')
+        
+        if all([server, database, username, password]):
+            return (
+                f"DRIVER={{ODBC Driver 18 for SQL Server}};"
+                f"SERVER={server};"
+                f"DATABASE={database};"
+                f"UID={username};"
+                f"PWD={password};"
+                f"Encrypt=yes;"
+                f"TrustServerCertificate=no;"
+                f"Connection Timeout=30;"
+            )
+        else:
+            raise ValueError("Variables d'environnement de base de données manquantes")
+    
+    def get_connection(self):
+        """Établit et retourne une connexion à la base de données"""
+        try:
+            return pyodbc.connect(self.connection_string)
+        except Exception as e:
+            print(f"Erreur de connexion à la base de données : {e}")
+            raise
+    
+    def execute_query(self, query, params=None, fetch=False):
+        """
+        Exécute une requête SQL
+        
+        Args:
+            query (str): Requête SQL à exécuter
+            params (tuple): Paramètres pour la requête
+            fetch (bool): True pour récupérer les résultats
+            
+        Returns:
+            list: Résultats si fetch=True, None sinon
+        """
+        connection = None
+        try:
+            connection = self.get_connection()
+            cursor = connection.cursor()
+            
+            if params:
+                cursor.execute(query, params)
+            else:
+                cursor.execute(query)
+            
+            if fetch:
+                columns = [column[0] for column in cursor.description]
+                results = []
+                for row in cursor.fetchall():
+                    results.append(dict(zip(columns, row)))
+                cursor.close()
+                return results
+            else:
+                connection.commit()
+                cursor.close()
+                return None
+        except Exception as e:
+            print(f"Erreur lors de l'exécution de la requête : {e}")
+            if connection:
+                connection.rollback()
+            raise
+        finally:
+            if connection:
+                connection.close()
+
+# Instance globale du gestionnaire de base de données
+db_manager = DatabaseManager()
 
 def login_required(f):
     @wraps(f)
@@ -18,8 +107,6 @@ app.secret_key = 'votre_cle_secrete_super_complexe_123456789'  # Changez ceci en
 
 CSV_FILE = 'incidents.csv'
 USERS_FILE = 'users.csv'
-
-# Charger les utilisateurs
 
 # Charger les utilisateurs
 def lire_utilisateurs():
@@ -40,30 +127,64 @@ def verifier_utilisateur(username, password):
 
 # Charger les incidents
 def lire_incidents():
-    incidents = []
-    if os.path.exists(CSV_FILE):
-        with open(CSV_FILE, newline='', encoding='utf-8') as f:
-            reader = csv.DictReader(f)
-            incidents = list(reader)
-    return incidents
+    """Lit tous les incidents depuis la base de données Azure SQL"""
+    try:
+        query = "SELECT * FROM incidents ORDER BY date DESC, id DESC"
+        incidents = db_manager.execute_query(query, fetch=True)
+        
+        # Convertir les dates en chaînes pour l'affichage
+        for incident in incidents:
+            if incident['date']:
+                incident['date'] = incident['date'].strftime('%Y-%m-%d')
+        
+        return incidents
+    except Exception as e:
+        print(f"Erreur lors de la lecture des incidents : {e}")
+        flash('Erreur lors du chargement des incidents depuis la base de données.', 'error')
+        return []
 
 # Ajouter un incident
 def ajouter_incident(titre, description, gravite):
-    incidents = lire_incidents()
-    nouvel_id = str(max([int(i['id']) for i in incidents], default=0) + 1)
-    nouveau = {
-        'id': nouvel_id,
-        'titre': titre,
-        'description': description,
-        'gravite': gravite,
-        'date': datetime.datetime.today().strftime('%Y-%m-%d'),
-        'statut': 'Nouveau'
-    }
-    incidents.append(nouveau)
-    with open(CSV_FILE, 'w', newline='', encoding='utf-8') as f:
-        writer = csv.DictWriter(f, fieldnames=nouveau.keys())
-        writer.writeheader()
-        writer.writerows(incidents)
+    """Ajoute un nouvel incident dans la base de données Azure SQL"""
+    try:
+        # Obtenir le prochain ID
+        query_max_id = "SELECT ISNULL(MAX(id), 0) + 1 as next_id FROM incidents"
+        result = db_manager.execute_query(query_max_id, fetch=True)
+        nouvel_id = result[0]['next_id'] if result else 1
+        
+        # Insérer le nouvel incident
+        query_insert = """
+        INSERT INTO incidents (id, titre, description, gravite, date, statut) 
+        VALUES (?, ?, ?, ?, ?, ?)
+        """
+        date_today = datetime.datetime.today().strftime('%Y-%m-%d')
+        params = (nouvel_id, titre, description, gravite, date_today, 'Nouveau')
+        
+        db_manager.execute_query(query_insert, params)
+        return True
+        
+    except Exception as e:
+        print(f"Erreur lors de l'ajout de l'incident : {e}")
+        flash('Erreur lors de l\'ajout de l\'incident dans la base de données.', 'error')
+        return False
+
+def obtenir_incident_par_id(incident_id):
+    """Récupère un incident spécifique par son ID depuis la base de données"""
+    try:
+        query = "SELECT * FROM incidents WHERE id = ?"
+        results = db_manager.execute_query(query, (incident_id,), fetch=True)
+        
+        if results:
+            incident = results[0]
+            # Convertir la date en chaîne pour l'affichage
+            if incident['date']:
+                incident['date'] = incident['date'].strftime('%Y-%m-%d')
+            return incident
+        return None
+        
+    except Exception as e:
+        print(f"Erreur lors de la récupération de l'incident {incident_id} : {e}")
+        return None
 
 # Route de connexion
 @app.route('/login', methods=['GET', 'POST'])
@@ -108,16 +229,23 @@ def ajouter():
         titre = request.form['titre']
         description = request.form['description']
         gravite = request.form['gravite']
-        ajouter_incident(titre, description, gravite)
-        flash('Incident ajouté avec succès !', 'success')
+        
+        if ajouter_incident(titre, description, gravite):
+            flash('Incident ajouté avec succès !', 'success')
+        else:
+            flash('Erreur lors de l\'ajout de l\'incident.', 'error')
+        
         return redirect(url_for('index'))
     return render_template('ajouter.html')
 
-# Détails d’un incident
+# Détails d'un incident
 @app.route('/incident/<int:incident_id>')
+@login_required
 def detail(incident_id):
-    incidents = lire_incidents()
-    incident = next((i for i in incidents if int(i['id']) == incident_id), None)
+    incident = obtenir_incident_par_id(incident_id)
+    if incident is None:
+        flash('Incident non trouvé.', 'error')
+        return redirect(url_for('index'))
     return render_template('detail.html', incident=incident)
 
 if __name__ == '__main__':
