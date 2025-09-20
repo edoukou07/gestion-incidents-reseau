@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inscription - Gestion des Incidents Réseau</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .register-container {
+            max-width: 500px;
+            margin: 50px auto;
+            background: #fff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 5px rgba(0,123,255,0.3);
+        }
+        
+        .btn-primary {
+            background-color: #007bff;
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+            margin-bottom: 15px;
+        }
+        
+        .btn-primary:hover {
+            background-color: #0056b3;
+        }
+        
+        .btn-secondary {
+            background-color: #6c757d;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+            width: 100%;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #5a6268;
+            text-decoration: none;
+            color: white;
+        }
+        
+        .password-requirements {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 10px;
+            margin-top: 5px;
+            font-size: 14px;
+        }
+        
+        .password-requirements h4 {
+            margin: 0 0 10px 0;
+            color: #495057;
+            font-size: 14px;
+        }
+        
+        .password-requirements ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+        
+        .password-requirements li {
+            color: #6c757d;
+            margin-bottom: 3px;
+        }
+        
+        .alert {
+            padding: 12px;
+            margin-bottom: 20px;
+            border: 1px solid transparent;
+            border-radius: 4px;
+        }
+        
+        .alert-success {
+            color: #155724;
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+        }
+        
+        .alert-error {
+            color: #721c24;
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+        }
+        
+        .login-link {
+            text-align: center;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+        
+        .login-link a {
+            color: #007bff;
+            text-decoration: none;
+        }
+        
+        .login-link a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="register-container">
+        <h2>Créer un compte</h2>
+        
+        <!-- Messages flash -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ 'error' if category == 'error' else 'success' }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        
+        <form method="POST">
+            <div class="form-group">
+                <label for="username">Nom d'utilisateur *</label>
+                <input type="text" id="username" name="username" required 
+                       value="{{ request.form.username if request.form.username }}"
+                       minlength="3" maxlength="50"
+                       pattern="[a-zA-Z0-9_]+"
+                       title="Le nom d'utilisateur ne peut contenir que des lettres, chiffres et underscores">
+            </div>
+            
+            <div class="form-group">
+                <label for="email">Adresse email *</label>
+                <input type="email" id="email" name="email" required 
+                       value="{{ request.form.email if request.form.email }}"
+                       maxlength="100">
+            </div>
+            
+            <div class="form-group">
+                <label for="nom_complet">Nom complet *</label>
+                <input type="text" id="nom_complet" name="nom_complet" required 
+                       value="{{ request.form.nom_complet if request.form.nom_complet }}"
+                       maxlength="100">
+            </div>
+            
+            <div class="form-group">
+                <label for="password">Mot de passe *</label>
+                <input type="password" id="password" name="password" required minlength="8">
+                <div class="password-requirements">
+                    <h4>Exigences du mot de passe :</h4>
+                    <ul>
+                        <li>Au moins 8 caractères</li>
+                        <li>Au moins une majuscule</li>
+                        <li>Au moins une minuscule</li>
+                        <li>Au moins un chiffre</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="password_confirm">Confirmer le mot de passe *</label>
+                <input type="password" id="password_confirm" name="password_confirm" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="role">Rôle</label>
+                <select id="role" name="role">
+                    <option value="user" {{ 'selected' if request.form.role == 'user' else '' }}>Utilisateur</option>
+                    <option value="admin" {{ 'selected' if request.form.role == 'admin' else '' }}>Administrateur</option>
+                </select>
+            </div>
+            
+            <button type="submit" class="btn-primary">Créer le compte</button>
+        </form>
+        
+        <div class="login-link">
+            <p>Vous avez déjà un compte ? <a href="{{ url_for('login') }}">Se connecter</a></p>
+        </div>
+    </div>
+    
+    <script>
+        // Validation côté client
+        document.getElementById('password_confirm').addEventListener('input', function() {
+            const password = document.getElementById('password').value;
+            const confirm = this.value;
+            
+            if (password !== confirm && confirm.length > 0) {
+                this.setCustomValidity('Les mots de passe ne correspondent pas');
+            } else {
+                this.setCustomValidity('');
+            }
+        });
+        
+        // Validation du mot de passe en temps réel
+        document.getElementById('password').addEventListener('input', function() {
+            const password = this.value;
+            const requirements = {
+                length: password.length >= 8,
+                uppercase: /[A-Z]/.test(password),
+                lowercase: /[a-z]/.test(password),
+                number: /\d/.test(password)
+            };
+            
+            // Optionnel : ajouter une indication visuelle de la force du mot de passe
+        });
+    </script>
+</body>
+</html>

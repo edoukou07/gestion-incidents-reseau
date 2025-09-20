@@ -3,6 +3,8 @@ import csv
 import os
 import datetime
 import pyodbc
+import bcrypt
+import re
 from functools import wraps
 from dotenv import load_dotenv
 
@@ -108,22 +110,105 @@ app.secret_key = 'votre_cle_secrete_super_complexe_123456789'  # Changez ceci en
 CSV_FILE = 'incidents.csv'
 USERS_FILE = 'users.csv'
 
-# Charger les utilisateurs
-def lire_utilisateurs():
-    utilisateurs = []
-    if os.path.exists(USERS_FILE):
-        with open(USERS_FILE, newline='', encoding='utf-8') as f:
-            reader = csv.DictReader(f)
-            utilisateurs = list(reader)
-    return utilisateurs
+# Fonctions de gestion des utilisateurs avec Azure SQL
 
-# Vérifier les identifiants
+def hash_password(password):
+    """Hash un mot de passe avec bcrypt"""
+    return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+
+def verify_password(password, hashed_password):
+    """Vérifie un mot de passe contre son hash"""
+    return bcrypt.checkpw(password.encode('utf-8'), hashed_password.encode('utf-8'))
+
+def validate_email(email):
+    """Valide le format d'un email"""
+    pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+    return re.match(pattern, email) is not None
+
+def validate_password(password):
+    """Valide la force d'un mot de passe"""
+    if len(password) < 8:
+        return False, "Le mot de passe doit contenir au moins 8 caractères"
+    if not re.search(r'[A-Z]', password):
+        return False, "Le mot de passe doit contenir au moins une majuscule"
+    if not re.search(r'[a-z]', password):
+        return False, "Le mot de passe doit contenir au moins une minuscule"
+    if not re.search(r'\d', password):
+        return False, "Le mot de passe doit contenir au moins un chiffre"
+    return True, "Mot de passe valide"
+
+def get_user_by_username(username):
+    """Récupère un utilisateur par son nom d'utilisateur depuis la base de données"""
+    try:
+        query = "SELECT * FROM users WHERE username = ? AND actif = 1"
+        results = db_manager.execute_query(query, (username,), fetch=True)
+        return results[0] if results else None
+    except Exception as e:
+        print(f"Erreur lors de la récupération de l'utilisateur : {e}")
+        return None
+
+def get_user_by_email(email):
+    """Récupère un utilisateur par son email depuis la base de données"""
+    try:
+        query = "SELECT * FROM users WHERE email = ? AND actif = 1"
+        results = db_manager.execute_query(query, (email,), fetch=True)
+        return results[0] if results else None
+    except Exception as e:
+        print(f"Erreur lors de la récupération de l'utilisateur par email : {e}")
+        return None
+
+def create_user(username, email, password, nom_complet, role='user'):
+    """Crée un nouvel utilisateur dans la base de données"""
+    try:
+        # Vérifier si l'utilisateur ou l'email existe déjà
+        if get_user_by_username(username):
+            return False, "Ce nom d'utilisateur existe déjà"
+        
+        if get_user_by_email(email):
+            return False, "Cette adresse email est déjà utilisée"
+        
+        # Valider le mot de passe
+        is_valid, message = validate_password(password)
+        if not is_valid:
+            return False, message
+        
+        # Hasher le mot de passe
+        password_hash = hash_password(password)
+        
+        # Insérer le nouvel utilisateur
+        query = """
+        INSERT INTO users (username, email, password_hash, nom_complet, role) 
+        VALUES (?, ?, ?, ?, ?)
+        """
+        params = (username, email, password_hash, nom_complet, role)
+        db_manager.execute_query(query, params)
+        
+        return True, "Utilisateur créé avec succès"
+        
+    except Exception as e:
+        print(f"Erreur lors de la création de l'utilisateur : {e}")
+        return False, "Erreur lors de la création de l'utilisateur"
+
 def verifier_utilisateur(username, password):
-    utilisateurs = lire_utilisateurs()
-    for user in utilisateurs:
-        if user['username'] == username and user['password'] == password:
+    """Vérifie les identifiants d'un utilisateur avec la base de données"""
+    try:
+        user = get_user_by_username(username)
+        if user and verify_password(password, user['password_hash']):
             return user
-    return None
+        return None
+    except Exception as e:
+        print(f"Erreur lors de la vérification de l'utilisateur : {e}")
+        return None
+
+# Fonction de compatibilité (deprecated)
+def lire_utilisateurs():
+    """Fonction deprecated - utiliser get_user_by_username à la place"""
+    try:
+        query = "SELECT * FROM users WHERE actif = 1"
+        return db_manager.execute_query(query, fetch=True)
+    except Exception as e:
+        print(f"Erreur lors de la lecture des utilisateurs : {e}")
+        return []
 
 # Charger les incidents
 def lire_incidents():
@@ -205,6 +290,50 @@ def login():
             flash('Nom d\'utilisateur ou mot de passe incorrect.', 'error')
     
     return render_template('login.html')
+
+# Route d'enregistrement
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if request.method == 'POST':
+        username = request.form['username'].strip()
+        email = request.form['email'].strip().lower()
+        password = request.form['password']
+        password_confirm = request.form['password_confirm']
+        nom_complet = request.form['nom_complet'].strip()
+        role = request.form.get('role', 'user')
+        
+        # Validation des données
+        if not all([username, email, password, password_confirm, nom_complet]):
+            flash('Tous les champs obligatoires doivent être remplis.', 'error')
+            return render_template('register.html')
+        
+        if password != password_confirm:
+            flash('Les mots de passe ne correspondent pas.', 'error')
+            return render_template('register.html')
+        
+        if not validate_email(email):
+            flash('Format d\'email invalide.', 'error')
+            return render_template('register.html')
+        
+        if len(username) < 3 or len(username) > 50:
+            flash('Le nom d\'utilisateur doit contenir entre 3 et 50 caractères.', 'error')
+            return render_template('register.html')
+        
+        if not re.match(r'^[a-zA-Z0-9_]+$', username):
+            flash('Le nom d\'utilisateur ne peut contenir que des lettres, chiffres et underscores.', 'error')
+            return render_template('register.html')
+        
+        # Créer l'utilisateur
+        success, message = create_user(username, email, password, nom_complet, role)
+        
+        if success:
+            flash('Compte créé avec succès ! Vous pouvez maintenant vous connecter.', 'success')
+            return redirect(url_for('login'))
+        else:
+            flash(message, 'error')
+            return render_template('register.html')
+    
+    return render_template('register.html')
 
 # Route de déconnexion
 @app.route('/logout')
