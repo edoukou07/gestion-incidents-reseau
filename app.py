@@ -5,6 +5,9 @@ import datetime
 import pyodbc
 import bcrypt
 import re
+import requests
+import json
+import time
 from functools import wraps
 from dotenv import load_dotenv
 
@@ -23,12 +26,12 @@ class DatabaseManager:
             return conn_string
         
         # Construire la chaîne de connexion avec les paramètres séparés
-        server = os.getenv('AZURE_SQL_SERVER')
-        database = os.getenv('AZURE_SQL_DATABASE')
-        username = os.getenv('AZURE_SQL_USERNAME')
-        password = os.getenv('AZURE_SQL_PASSWORD')
+        # server = os.getenv('AZURE_SQL_SERVER')
+        # database = os.getenv('AZURE_SQL_DATABASE')
+        # username = os.getenv('AZURE_SQL_USERNAME')
+        # password = os.getenv('AZURE_SQL_PASSWORD')
         
-        if all([server, database, username, password]):
+        """ if all([server, database, username, password]):
             return (
                 f"DRIVER={{ODBC Driver 18 for SQL Server}};"
                 f"SERVER={server};"
@@ -41,7 +44,7 @@ class DatabaseManager:
             )
         else:
             raise ValueError("Variables d'environnement de base de données manquantes")
-    
+     """
     def get_connection(self):
         """Établit et retourne une connexion à la base de données"""
         try:
@@ -95,6 +98,67 @@ class DatabaseManager:
 # Instance globale du gestionnaire de base de données
 db_manager = DatabaseManager()
 
+def call_azure_function_migration():
+    """
+    Appelle la fonction Azure pour migrer les utilisateurs depuis Azure Blob Storage
+    """
+    azure_function_url = "https://testhttpinc.azurewebsites.net/api/migrate-csv-from-blob"
+    params = {
+        "container_name": "appfiles",
+        "blob_name": "users.csv"
+    }
+    
+    try:
+        print("🚀 Appel de la fonction Azure pour la migration des utilisateurs...")
+        print(f"📡 URL: {azure_function_url}")
+        print(f"📦 Container: {params['container_name']}")
+        print(f"📄 Fichier: {params['blob_name']}")
+        
+        # Effectuer l'appel avec un timeout
+        response = requests.get(azure_function_url, params=params, timeout=60)
+        
+        if response.status_code == 200:
+            result = response.json()
+            print("✅ Réponse de la fonction Azure reçue avec succès")
+            print(f"📊 Utilisateurs migrés : {result.get('migrated_count', 0)}")
+            print(f"⚠️ Utilisateurs ignorés : {result.get('skipped_count', 0)}")
+            print(f"❌ Erreurs : {result.get('error_count', 0)}")
+            
+            if result.get('success', False):
+                print("🎉 Migration des utilisateurs terminée avec succès !")
+            else:
+                print("⚠️ Migration terminée avec des avertissements")
+                
+            # Afficher quelques messages importants
+            messages = result.get('messages', [])
+            for message in messages[-5:]:  # Afficher les 5 derniers messages
+                print(f"   {message}")
+                
+        else:
+            print(f"❌ Erreur lors de l'appel à la fonction Azure: {response.status_code}")
+            print(f"📄 Réponse: {response.text[:500]}...")
+            
+    except requests.exceptions.Timeout:
+        print("⏱️ Timeout lors de l'appel à la fonction Azure (plus de 60 secondes)")
+        print("💡 La migration peut encore être en cours...")
+    except requests.exceptions.RequestException as e:
+        print(f"🔌 Erreur de connexion lors de l'appel à la fonction Azure: {e}")
+        print("💡 Vérifiez que la fonction Azure est accessible")
+    except Exception as e:
+        print(f"❌ Erreur inattendue lors de l'appel à la fonction Azure: {e}")
+
+def initialize_application():
+    """
+    Initialise l'application au démarrage
+    """
+    print("🔧 === INITIALISATION DE L'APPLICATION ===")
+    print("📅 Démarrage de l'application de gestion des incidents réseau")
+    
+    # Appeler la fonction Azure pour migrer les utilisateurs
+    call_azure_function_migration()
+    
+    print("✅ === INITIALISATION TERMINÉE ===\n")
+
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -106,6 +170,9 @@ def login_required(f):
 
 app = Flask(__name__)
 app.secret_key = 'votre_cle_secrete_super_complexe_123456789'  # Changez ceci en production
+
+# Initialiser l'application au démarrage
+initialize_application()
 
 CSV_FILE = 'incidents.csv'
 USERS_FILE = 'users.csv'
@@ -376,6 +443,23 @@ def detail(incident_id):
         flash('Incident non trouvé.', 'error')
         return redirect(url_for('index'))
     return render_template('detail.html', incident=incident)
+
+# Route pour déclencher manuellement la migration des utilisateurs
+@app.route('/admin/migrate-users')
+@login_required
+def migrate_users_manually():
+    # Vérifier que l'utilisateur est administrateur
+    if session.get('user_role') != 'admin':
+        flash('Accès refusé. Cette fonctionnalité est réservée aux administrateurs.', 'error')
+        return redirect(url_for('index'))
+    
+    try:
+        call_azure_function_migration()
+        flash('Migration des utilisateurs déclenchée avec succès ! Consultez les logs pour plus de détails.', 'success')
+    except Exception as e:
+        flash(f'Erreur lors du déclenchement de la migration : {str(e)}', 'error')
+    
+    return redirect(url_for('index'))
 
 if __name__ == '__main__':
     app.run(debug=True)
