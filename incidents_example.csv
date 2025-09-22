@@ -1,0 +1,9 @@
+id,titre,description,gravite,date,statut
+1,Perte de signal Wi-Fi,Intermittence sur le réseau Wi-Fi dans la zone A,Majeur,2025-09-18,Nouveau
+2,Serveur de base de données lent,Lenteur observée sur les requêtes de base de données,Critique,2025-09-19,En cours
+3,Routeur principal hors service,Le routeur principal ne répond plus aux requêtes ping,Critique,2025-09-20,Nouveau
+4,Problème DNS,Résolution de noms de domaine intermittente,Moyen,2025-09-20,Nouveau
+5,Latence réseau élevée,Temps de réponse supérieur à 200ms sur le serveur principal,Majeur,2025-09-21,En cours
+6,Coupure électrique datacenter,Interruption d'alimentation électrique dans le datacenter B,Critique,2025-09-21,Résolu
+7,Mise à jour sécurité urgente,Patch critique à appliquer sur tous les serveurs web,Majeur,2025-09-22,Nouveau
+8,Disque dur serveur plein,Espace disque insuffisant sur le serveur de fichiers,Moyen,2025-09-22,En cours
